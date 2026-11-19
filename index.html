@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  Tender Evaluation Matrix — open source under the MIT License.
+  Copyright (c) 2026 Asyraf Abdul. See LICENSE.
+  https://opensource.org/licenses/MIT
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="author" content="Asyraf Abdul">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tender Evaluation Matrix</title>
+<style>
+:root{
+  --navy:#1F3864; --teal:#2E75B6; --ink:#1d2433; --muted:#5b6475; --line:#d9dee7; --bg:#f4f6fa; --card:#fff;
+  --input:#fff8e1; --inputline:#e9d38f; --pass:#1e7b3a; --passbg:#dcf3e2; --fail:#a1112b; --failbg:#fde1e6;
+  --warn:#8a5a00; --warnbg:#fff1c7; --hi:#e3eefb;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Arial,Helvetica,sans-serif;font-size:13.5px;color:var(--ink);background:var(--bg)}
+header{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
+header .sub{font-size:12px;opacity:.8}
+header .spacer{flex:1}
+.btn{border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;padding:6px 12px;border-radius:6px;font-size:12.5px;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.12)}
+.btn.solid{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.dark{border-color:var(--line);color:var(--ink);background:#fff}
+.btn.dark:hover{background:#eef2f8}
+.status{background:#fff;border-bottom:1px solid var(--line);padding:10px 24px;display:flex;gap:26px;flex-wrap:wrap;font-size:12.5px}
+.status b{font-size:14px}
+.status .k{color:var(--muted);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+nav{display:flex;gap:2px;padding:0 24px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:0;z-index:5}
+nav button{border:0;background:none;padding:12px 14px;font-size:13px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--navy);border-bottom-color:var(--teal);font-weight:600}
+nav .num{display:inline-block;width:18px;height:18px;line-height:18px;border-radius:50%;background:#e8edf5;color:var(--navy);font-size:11px;text-align:center;margin-right:6px}
+nav button.on .num{background:var(--teal);color:#fff}
+main{padding:22px 24px 60px;max-width:1500px}
+h2{font-size:18px;margin:0 0 4px;color:var(--navy)}
+.lead{color:var(--muted);margin:0 0 18px;font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:18px}
+.card h3{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--teal)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:18px}
+.form{display:grid;grid-template-columns:220px 1fr;gap:8px 12px;align-items:center}
+.form label{font-weight:600;font-size:12.5px}
+input,select,textarea{font:inherit;color:#1a3fbf;background:var(--input);border:1px solid var(--inputline);border-radius:5px;padding:6px 8px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--teal);outline-offset:-1px;background:#fff}
+textarea{min-height:90px;resize:vertical}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;background:#fff}
+th{background:var(--navy);color:#fff;font-weight:600;font-size:12px;padding:8px 6px;text-align:center;border:1px solid #2c4a7c;vertical-align:middle}
+th.l,td.l{text-align:left}
+td{border:1px solid var(--line);padding:4px 6px;text-align:center;vertical-align:middle}
+td input,td select{padding:4px 6px;border-radius:4px}
+td.calc{background:#f3f5f9;font-variant-numeric:tabular-nums}
+td.b,tr.tot td{font-weight:700}
+tr.tot td{background:#eef2f8}
+td.no{color:var(--muted);width:34px}
+.pill{display:inline-block;padding:2px 9px;border-radius:12px;font-weight:700;font-size:11.5px}
+.PASS,.Yes{background:var(--passbg);color:var(--pass)}
+.FAIL,.No{background:var(--failbg);color:var(--fail)}
+.INCOMPLETE,.Open{background:var(--warnbg);color:var(--warn)}
+.amber{background:var(--warnbg)!important;color:var(--warn);font-weight:700}
+.red{background:var(--failbg)!important;color:var(--fail);font-weight:700}
+.green{background:var(--passbg)!important;color:var(--pass);font-weight:700}
+button.add{border:1px dashed var(--teal);background:#f3f8fe;color:var(--teal);font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12.5px}
+button.add:hover{background:#e3eefb}
+button.del{border:0;background:none;color:#a7aebb;font-size:18px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:4px}
+button.del:hover{background:var(--failbg);color:var(--fail)}
+tr.win td{background:var(--hi)!important;font-weight:700;color:var(--navy)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:18px;padding:6px 14px;cursor:pointer;font-size:12.5px}
+.chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.chip small{opacity:.75;margin-left:6px}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.kpi .v{font-size:18px;font-weight:700;margin-top:4px;color:var(--navy)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar-row{display:grid;grid-template-columns:220px 1fr 60px;gap:10px;align-items:center;font-size:12.5px}
+.bar{height:20px;background:#eef1f6;border-radius:4px;display:flex;overflow:hidden}
+.bar .t{background:var(--navy)}.bar .c{background:#7fb2e5}
+.legend{font-size:11.5px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;margin:0 4px 0 12px;vertical-align:middle}
+.warnbox{background:var(--warnbg);border:1px solid #f0d58a;color:var(--warn);padding:8px 12px;border-radius:6px;margin-bottom:14px;font-size:12.5px}
+.help li{margin-bottom:6px}
+.hidden{display:none}
+.printhead{display:none}
+.trialbar{background:#fff3d6;border:1px solid #f0d58a;color:#7a4b00;border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:10px}
+.trialbar a{color:#7a4b00;font-weight:700}
+.lockcard{text-align:center;padding:48px 24px}
+.lockcard .btn.solid{display:inline-block;text-decoration:none;margin-top:8px}
+@media print{ body.trial::after{content:"TRIAL VERSION";position:fixed;top:42%;left:0;right:0;text-align:center;font-size:110px;font-weight:800;color:rgba(160,0,0,.12);transform:rotate(-24deg);-webkit-print-color-adjust:exact;print-color-adjust:exact} }
+@media print{
+  header,nav,.status,.noprint,.btn{display:none!important}
+  body{background:#fff;font-size:11px}
+  main{padding:0;max-width:none}
+  .card{border:1px solid #ccc;break-inside:avoid}
+  .printhead{display:block;margin-bottom:10px}
+  input,select,textarea{border:0;background:none;color:#000;padding:0}
+  th{background:#1F3864!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pill,.green,.red,.amber,tr.win td,.bar .t,.bar .c{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<header id="hdr"></header>
+<input type="file" id="imp" accept=".json" class="hidden" onchange="importJSON(event)">
+<input type="file" id="packin" accept=".json" class="hidden" onchange="readFiles(event, openPack)">
+<input type="file" id="scorein" accept=".json" multiple class="hidden" onchange="readFiles(event, importScores)">
+<div class="status" id="status"></div>
+<nav id="nav"></nav>
+<main id="main"></main>
+
+<script id="app">
+/* Tender Evaluation Matrix · MIT License · Copyright (c) 2026 Asyraf Abdul */
+const NB = 6, NE = 5, NR0 = 8, NC0 = 10, NCL = 30;
+let KEY = 'tender-eval-matrix-v1';
+const TRIAL = null;   // (trial copies are not part of the open-source edition)
+let trialState = null;
+const TABS = [
+  ['setup','Setup'],['compliance','Compliance'],['technical','Technical'],['packs','Panel Packs'],['scoring','Evaluator Scoring'],
+  ['panel','Panel Review'],['clar','Clarifications'],['commercial','Commercial'],['summary','Summary'],
+  ['sens','Sensitivity'],['help','How to use']
+];
+const SCALE_DEF = ['Not addressed / unacceptable','Major gaps or serious risk','Partly meets requirement; notable weaknesses',
+  'Meets requirement','Meets requirement with some added value','Exceeds requirement; clear added value, low risk'];
+
+const arr = (n, f) => Array.from({length:n}, (_, i) => typeof f === 'function' ? f(i) : f);
+const uid = () => 'T' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2,6).toUpperCase();
+function hash(str){ let h = 5381; for(let i=0;i<str.length;i++) h = ((h<<5)+h+str.charCodeAt(i))|0; return (h>>>0).toString(36).toUpperCase(); }
+function fingerprint(bidders, criteria){
+  let n = criteria.length;   // ignore empty lines at the end (adding a blank line shouldn't outdate forms)
+  while(n && !String(criteria[n-1].text||'').trim() && !(typeof criteria[n-1].w==='number' && isFinite(criteria[n-1].w))) n--;
+  return hash(JSON.stringify([bidders.map(x=>String(x||'').trim()),
+    criteria.slice(0,n).map(c=>[String(c.text||'').trim(), (typeof c.w==='number'&&isFinite(c.w)) ? +c.w.toFixed(6) : null])]));
+}
+const newReq = () => ({text:'',ans:arr(NB,''),note:''});
+const newCrit = () => ({cat:'',text:'',w:null});
+/* keep score/comment grids the same length as the criteria list */
+function normalize(st){
+  const n = st.criteria.length;
+  st.scores = arr(NE, e => arr(n, k => (st.scores[e] && st.scores[e][k]) ? st.scores[e][k] : arr(NB,null)));
+  st.comments = arr(NE, e => arr(n, k => (st.comments[e] && st.comments[e][k]) || ''));
+  return st;
+}
+function addReq(){ S.reqs.push(newReq()); save(); keepScroll(); focusLast('reqs'); }
+function delReq(k){
+  const r = S.reqs[k];
+  if((r.text.trim() || r.ans.some(a=>a)) && !confirm(`Delete requirement ${k+1}${r.text.trim()?` “${r.text.trim()}”`:''}?`)) return;
+  S.reqs.splice(k,1); if(!S.reqs.length) S.reqs.push(newReq()); save(); keepScroll();
+}
+function addCrit(){ S.criteria.push(newCrit()); normalize(S); save(); keepScroll(); focusLast('criteria'); }
+function delCrit(k){
+  const c = S.criteria[k], scored = S.scores.some(g=>g[k] && g[k].some(isNum));
+  if((c.text.trim() || isNum(c.w) || scored) && !confirm(`Delete criterion ${k+1}${c.text.trim()?` “${c.text.trim()}”`:''}${scored?' and all evaluator scores for it':''}?`)) return;
+  S.criteria.splice(k,1); S.scores.forEach(g=>g.splice(k,1)); S.comments.forEach(g=>g.splice(k,1));
+  if(!S.criteria.length){ S.criteria.push(newCrit()); normalize(S); }
+  save(); keepScroll();
+}
+function keepScroll(){ const y = window.scrollY; render(); window.scrollTo(0,y); }
+function focusLast(kind){
+  const els = document.querySelectorAll(`input[data-k^="${kind}."][data-k$=".text"]`);
+  if(els.length) els[els.length-1].focus();
+}
+function blank(){
+  return {
+    tenderId: uid(), packs: arr(NE,null), subs: arr(NE,null),
+    project:{title:'',ref:'',client:'',date:'',currency:'USD',budget:null,techW:0.7,pass:0.6,method:'Average'},
+    scale:SCALE_DEF.slice(),
+    bidders:arr(NB,''), evaluators:arr(NE,''),
+    reqs:arr(NR0,()=>newReq()),
+    criteria:arr(NC0,()=>newCrit()),
+    scores:arr(NE,()=>arr(NC0,()=>arr(NB,null))),
+    comments:arr(NE,()=>arr(NC0,'')),
+    clar:arr(NCL,()=>({bidder:'',type:'',q:'',sent:'',resp:'',recv:'',cost:null,status:''})),
+    price:arr(NB,null), corr:arr(NB,null), other:arr(NB,null),
+    terms:['Completion / delivery (weeks)','Payment terms','Bid validity (days)','Warranty (months)','Liquidated damages accepted?','Commercial deviations / qualifications']
+      .map(l=>({label:l,vals:arr(NB,'')})),
+    sens:[0.4,0.5,0.6,0.7,0.8,0.9],
+    recommendation:'',
+    approvals:['Prepared by','Reviewed by','Approved by'].map(r=>({role:r,name:'',desig:'',date:''})),
+    coi:arr(NE,()=>({ok:'',date:''}))
+  };
+}
+
+function example(){
+  const s = blank();
+  Object.assign(s.project,{title:'Supply, Installation & Commissioning of 2 x 500RT Chiller Plant',ref:'TND-2026-014',
+    client:'Example Manufacturing Co.',date:'2026-11-11',currency:'USD',budget:1200000,techW:0.7,pass:0.6,method:'Average'});
+  s.bidders = ['Northbridge Engineering','Coastal M&E Contractors','Summit Cooling Systems','Vertex Building Services','',''];
+  s.evaluators = ['A. Rahman – Project Engineering','S. Lee – Maintenance','K. Kumar – HSE','',''];
+  const reqs = ['Bid submitted before closing date/time','Form of Tender signed by authorised person','Bid bond / tender security provided',
+    'Valid company registration & required licences','Bid validity at least 90 days','Price schedule fully completed',
+    'Acceptance of contract conditions (or deviations listed)','HSE policy and method statement submitted'];
+  reqs.forEach((t,k)=>{ s.reqs[k].text=t; for(let b=0;b<4;b++) s.reqs[k].ans[b]='Yes'; });
+  s.reqs[2].ans[3]='No'; s.reqs[2].note='Vertex: no bid bond enclosed with submission';
+  const crit = [['Technical','Compliance with specification & scope understanding',.15],['Technical','Equipment make/model & energy efficiency',.15],
+    ['Delivery','Method statement & installation approach',.10],['Delivery','Programme & lead time',.10],
+    ['Capability','Relevant experience (similar projects, last 5 years)',.10],['Capability','Key personnel & site team',.08],
+    ['HSE / Quality','HSE plan & safety record',.08],['HSE / Quality','Testing & commissioning plan (FAT/SAT)',.07],
+    ['After-sales','Warranty & after-sales service',.07],['After-sales','Spare parts & local support',.05],['HSE / Quality','Quality plan / ISO 9001',.05]];
+  crit.forEach((c,k)=>{ s.criteria[k]={cat:c[0],text:c[1],w:c[2]}; }); normalize(s);
+  const base=[[4,4,4,3,4,4,4,4,3,4,4],[4,3,3,4,3,3,4,3,4,3,3],[2,3,2,3,2,2,3,2,3,2,3],[4,4,3,4,4,3,3,3,4,3,4]];
+  const EV=[base,
+    [[4,5,4,3,4,4,4,4,3,4,4],[4,3,4,4,3,3,4,3,4,3,3],[2,3,2,3,2,2,3,2,3,2,3],[4,4,3,4,4,3,3,3,4,3,4]],
+    [[3,4,4,3,4,4,4,4,4,4,4],[4,3,2,4,3,3,4,3,4,3,3],[3,3,2,3,2,2,3,2,3,2,3],[4,3,3,4,4,3,3,3,4,3,4]]];
+  EV.forEach((ev,e)=>ev.forEach((row,b)=>row.forEach((v,c)=>{ s.scores[e][c][b]=v; })));
+  s.comments[1][2]='Coastal method statement well sequenced'; s.comments[2][2]='Coastal method statement lacks lifting plan detail';
+  s.clar[0]={bidder:'Coastal M&E Contractors',type:'Commercial',q:'Price schedule excludes incoming electrical connection to chiller MCC. Please confirm.',sent:'2026-10-28',resp:'Confirmed excluded. Can add for 45,000.',recv:'2026-10-30',cost:45000,status:'Closed'};
+  s.clar[1]={bidder:'Northbridge Engineering',type:'Technical',q:'Confirm chiller part-load efficiency (IPLV) at AHRI conditions.',sent:'2026-10-28',resp:'IPLV 0.42 kW/RT confirmed; datasheet attached.',recv:'2026-10-31',cost:0,status:'Closed'};
+  s.clar[2]={bidder:'Summit Cooling Systems',type:'Technical',q:'Method statement for rigging and lifting not submitted.',sent:'2026-10-28',resp:'',recv:'',cost:null,status:'Open'};
+  s.price=[1250000,1120000,980000,1090000,null,null]; s.corr=[0,0,0,3200,null,null]; s.other=[0,0,0,0,null,null];
+  const tv=[[16,14,18,15],['30/60/10','20/70/10','40/50/10','30/60/10'],[90,120,90,90],[24,18,12,24],['Yes','Yes','With cap','Yes'],
+    ['None','Electrical connection excluded','Retention reduced to 5%','None']];
+  tv.forEach((vals,i)=>vals.forEach((v,b)=>{ s.terms[i].vals[b]=String(v); }));
+  s.recommendation='Northbridge Engineering is recommended: fully compliant, highest combined technical score from the 3-person panel (77.1%) and within 4.2% of budget. Coastal M&E is 6.8% cheaper after add-backs but scored lower on equipment efficiency and method statement. Summit (lowest price) did not meet the 60% technical pass mark; Vertex did not provide a bid bond. Note: Coastal would win only if commercial weight were raised to 60%.';
+  for(let e=0;e<3;e++) s.coi[e].ok='Yes';
+  s.reqs = s.reqs.slice(0, reqs.length); s.criteria = s.criteria.slice(0, crit.length); normalize(s);
+  s.tenderId = 'EXAMPLE-CHILLER-2026';
+  const fp = fingerprint(s.bidders, s.criteria);
+  for(let e=0;e<3;e++){ s.packs[e]={at:'2026-10-27T09:00:00', fp}; s.subs[e]={at:'2026-11-0'+(4+e)+'T16:30:00', name:s.evaluators[e]}; }
+  return s;
+}
+
+/* MODE: 'lead' = full tool; 'eval' = locked evaluator mode (own pack only) */
+let S, EVS = null, EVKEY = null, MODE = 'lead', tab = 'setup', curEval = 0;
+function save(){
+  try{
+    if(MODE==='eval' && EVKEY) localStorage.setItem(EVKEY, JSON.stringify(EVS));
+    else localStorage.setItem(KEY, JSON.stringify(S));
+    if(!window.EMBED_PACK) localStorage.setItem(KEY+'-mode', JSON.stringify({mode:MODE, key:EVKEY}));
+  }catch(e){}
+}
+function load(){
+  try{ const raw = localStorage.getItem(KEY); if(raw){ const b = blank(); return normalize(Object.assign(b, JSON.parse(raw))); } }catch(e){}
+  return example();
+}
+function loadMode(){
+  try{
+    const m = JSON.parse(localStorage.getItem(KEY+'-mode') || 'null');
+    if(m && m.mode==='eval' && m.key){ const ev = JSON.parse(localStorage.getItem(m.key) || 'null'); if(ev && ev.pack){ EVS=ev; EVKEY=m.key; MODE='eval'; } }
+  }catch(e){}
+}
+
+/* ---------- helpers ---------- */
+const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const isNum = v => typeof v === 'number' && isFinite(v);
+const pct = (v,d=1) => isNum(v) ? (v*100).toFixed(d)+'%' : '';
+const money = v => isNum(v) ? v.toLocaleString(undefined,{maximumFractionDigits:0}) : '';
+const sgnPct = v => isNum(v) ? (v>0?'+':'')+(v*100).toFixed(1)+'%' : '';
+const bname = b => S.bidders[b].trim() || ('Bidder '+(b+1));
+const ename = e => S.evaluators[e].trim() || ('Evaluator '+(e+1));
+const active = b => S.bidders[b].trim() !== '' && (!TRIAL || b < TRIAL.maxBidders);
+const pill = t => t ? `<span class="pill ${esc(t.split(' ')[0])}">${esc(t)}</span>` : '';
+const median = a => { const s=[...a].sort((x,y)=>x-y), m=s.length>>1; return s.length%2 ? s[m] : (s[m-1]+s[m])/2; };
+const avg = a => a.reduce((x,y)=>x+y,0)/a.length;
+
+function inp(path, val, type='text', extra=''){
+  let v = val;
+  if(type==='pct') v = isNum(val) ? +(val*100).toFixed(4) : '';
+  if(type==='num') v = isNum(val) ? val : '';
+  const t = (type==='pct'||type==='num') ? 'number' : (type==='date'?'date':'text');
+  return `<input type="${t}" data-k="${path}" data-t="${type}" value="${esc(v)}" ${extra}>`;
+}
+function sel(path, val, opts, extra=''){
+  return `<select data-k="${path}" data-t="sel" ${extra}><option value=""></option>${opts.map(o=>`<option ${String(o)===String(val)?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+}
+function setPath(path, raw, type){
+  const keys = path.split('.'); let o = MODE==='eval' ? EVS : S;
+  for(let i=0;i<keys.length-1;i++) o = o[keys[i]];
+  let v = raw;
+  if(type==='num'){ v = raw === '' ? null : parseFloat(raw); if(!isFinite(v)) v = null; }
+  if(type==='pct'){ v = raw === '' ? null : parseFloat(raw)/100; if(!isFinite(v)) v = null; }
+  if(type==='score'){ v = raw === '' ? null : parseInt(raw,10); }
+  o[keys[keys.length-1]] = v;
+}
+
+/* ---------- calculation engine (mirrors the Excel workbook) ---------- */
+function compute(){
+  const C = {};
+  const B = [...Array(NB).keys()], E = [...Array(NE).keys()], K = [...Array(S.criteria.length).keys()];
+  const W = isNum(S.project.techW) ? S.project.techW : 0;
+  // compliance
+  const reqIdx = S.reqs.map((r,i)=>r.text.trim()?i:-1).filter(i=>i>=0);
+  C.comp = B.map(b=>{
+    if(!active(b)) return {status:''};
+    let no=0, un=0;
+    reqIdx.forEach(i=>{ const a=S.reqs[i].ans[b]; if(a==='No') no++; else if(!['Yes','N/A'].includes(a)) un++; });
+    return {no, un, status: no>0?'FAIL':(un>0?'INCOMPLETE':'PASS')};
+  });
+  // technical
+  const crit = K.filter(k=>isNum(S.criteria[k].w));
+  C.totalW = crit.reduce((s,k)=>s+S.criteria[k].w,0);
+  C.nCrit = crit.length;
+  C.comb = K.map(k=>B.map(b=>{
+    const v = E.map(e=>S.scores[e][k][b]).filter(isNum);
+    if(!v.length) return null;
+    return S.project.method==='Median' ? median(v) : avg(v);
+  }));
+  const techOf = grid => B.map(b=>{
+    if(!active(b) || C.totalW===0) return null;
+    const n = K.filter(k=>isNum(grid[k][b])).length; if(!n) return null;
+    return crit.reduce((s,k)=>s+S.criteria[k].w*(isNum(grid[k][b])?grid[k][b]:0),0)/5/C.totalW;
+  });
+  C.tech = techOf(C.comb);
+  C.scored = B.map(b=>crit.filter(k=>isNum(C.comb[k][b])).length);
+  C.techRes = B.map(b=> C.tech[b]===null ? '' : (C.scored[b]<C.nCrit ? 'INCOMPLETE' : (C.tech[b] >= (S.project.pass||0) ? 'PASS':'FAIL')));
+  C.evTech = E.map(e=>techOf(S.scores[e]));
+  C.evCount = E.map(e=>K.reduce((s,k)=>s+B.filter(b=>isNum(S.scores[e][k][b])).length,0));
+  C.evScored = E.map(e=>B.map(b=>crit.filter(k=>isNum(S.scores[e][k][b])).length));
+  C.spread = K.map(k=>B.map(b=>{ const v=E.map(e=>S.scores[e][k][b]).filter(isNum); return v.length<2?null:Math.max(...v)-Math.min(...v); }));
+  C.flags = K.reduce((s,k)=>s+B.filter(b=>active(b)&&isNum(C.spread[k][b])&&C.spread[k][b]>=2).length,0);
+  const topOf = arr => { let m=-1,i=-1; arr.forEach((v,b)=>{ if(isNum(v)&&v>m){m=v;i=b;} }); return i; };
+  C.evTop = E.map(e=>C.evCount[e]?topOf(C.evTech[e]):-1);
+  C.combTop = topOf(C.tech);
+  const used = E.filter(e=>C.evCount[e]>0);
+  C.agree = used.length ? (used.every(e=>C.evTop[e]===C.combTop) ? 'Yes' : 'No') : '';
+  // commercial
+  C.addback = B.map(b=> active(b) ? S.clar.filter(c=>c.bidder===S.bidders[b] && c.bidder).reduce((s,c)=>s+(isNum(c.cost)?c.cost:0),0) : null);
+  C.evalP = B.map(b=> (active(b) && isNum(S.price[b])) ? S.price[b]+(S.corr[b]||0)+(C.addback[b]||0)+(S.other[b]||0) : null);
+  C.varB = B.map(b=> (isNum(C.evalP[b]) && isNum(S.project.budget) && S.project.budget) ? C.evalP[b]/S.project.budget-1 : null);
+  C.pRank = B.map(b=> isNum(C.evalP[b]) ? C.evalP.filter(p=>isNum(p)&&p<C.evalP[b]).length+1 : null);
+  // summary
+  C.elig = B.map(b=> active(b) ? (C.comp[b].status==='PASS' && C.techRes[b]==='PASS' && isNum(C.evalP[b])) : null);
+  const ep = B.filter(b=>C.elig[b]).map(b=>C.evalP[b]);
+  C.low = ep.length ? Math.min(...ep) : null;
+  C.ps = B.map(b=> C.elig[b] ? C.low/C.evalP[b] : null);
+  C.total = B.map(b=> C.elig[b] ? C.tech[b]*W + C.ps[b]*(1-W) : null);
+  C.rank = B.map(b=> C.elig[b] ? B.filter(x=>C.elig[x] && C.total[x]>C.total[b]).length+1 : null);
+  C.outcome = B.map(b=>{
+    if(!active(b)) return '';
+    if(C.elig[b]) return C.rank[b]===1 ? 'RECOMMENDED FOR AWARD' : 'Ranked '+C.rank[b];
+    if(C.comp[b].status!=='PASS') return 'Not eligible – compliance '+(C.comp[b].status||'').toLowerCase();
+    if(C.techRes[b]!=='PASS') return 'Not eligible – technical '+(C.techRes[b]||'not scored').toLowerCase();
+    return 'Not eligible – no evaluated price';
+  });
+  C.winner = B.find(b=>C.rank[b]===1);
+  // sensitivity
+  C.sens = S.sens.map(w=>B.map(b=> (C.elig[b] && isNum(w)) ? C.tech[b]*w + C.ps[b]*(1-w) : null));
+  C.sensWin = C.sens.map(col=>topOf(col));
+  const sw = C.sensWin.filter(i=>i>=0);
+  C.robust = C.winner===undefined ? '' : (sw.every(i=>i===C.winner) ? 'Yes' : 'No – changes at some weightings');
+  return C;
+}
+
+/* ---------- rendering ---------- */
+function renderNav(){
+  document.getElementById('nav').innerHTML = TABS.filter(([id])=>!(TRIAL && id==='trials')).map(([id,l],i)=>
+    `<button class="${tab===id?'on':''}" onclick="go('${id}')"><span class="num">${i+1}</span>${l}</button>`).join('');
+}
+function renderStatus(C){
+  const nElig = C.elig.filter(x=>x).length, nAct = [...Array(NB).keys()].filter(active).length;
+  const tb = TRIAL ? `<div class="trialbar"><b>TRIAL</b> ${trialState.daysLeft} day${trialState.daysLeft===1?'':'s'} left${TRIAL.buyUrl?` · <a href="${esc(TRIAL.buyUrl)}" target="_blank" rel="noopener">Buy full version</a>`:''}</div>` : '';
+  document.getElementById('status').innerHTML = tb + `
+    <div><span class="k">Tender</span><b>${esc(S.project.title||'—')}</b></div>
+    <div><span class="k">Weighting</span><b>${pct(S.project.techW,0)} / ${pct(1-(S.project.techW||0),0)}</b></div>
+    <div><span class="k">Eligible bidders</span><b>${nElig} of ${nAct}</b></div>
+    <div><span class="k">Recommended</span><b style="color:var(--pass)">${C.winner!==undefined?esc(bname(C.winner)):'—'}</b></div>
+    <div><span class="k">Weight check</span><b class="${Math.abs(C.totalW-1)<1e-6?'':'red'}">${pct(C.totalW,0)}</b></div>`;
+}
+function bidHead(extra=''){ return [...Array(NB).keys()].map(b=>`<th>${esc(bname(b))}</th>`).join('')+extra; }
+
+const R = {};
+R.setup = () => {
+  const p = S.project;
+  return `<h2>Setup</h2><p class="lead">Fill in the yellow fields. Bidder and evaluator names flow to every other tab.</p>
+  <div class="grid2">
+   <div class="card"><h3>Tender details</h3><div class="form">
+    <label>Tender / project title</label>${inp('project.title',p.title)}
+    <label>Tender reference</label>${inp('project.ref',p.ref)}
+    <label>Client / owner</label>${inp('project.client',p.client)}
+    <label>Evaluation date</label>${inp('project.date',p.date,'date')}
+    <label>Currency</label>${inp('project.currency',p.currency)}
+    <label>Budget / engineer's estimate</label>${inp('project.budget',p.budget,'num','step="any"')}
+   </div></div>
+   <div class="card"><h3>Evaluation rules</h3><div class="form">
+    <label>Technical weight (%)</label>${inp('project.techW',p.techW,'pct','min="0" max="100"')}
+    <label>Commercial weight (%)</label><div class="calc" style="padding:6px 8px;background:#f3f5f9;border-radius:5px">${pct(1-(p.techW||0),0)}</div>
+    <label>Technical pass mark (%)</label>${inp('project.pass',p.pass,'pct','min="0" max="100"')}
+    <label>Combine panel scores using</label>${sel('project.method',p.method,['Average','Median'])}
+   </div><p class="note">Fix weights and pass mark <b>before</b> bids are opened — never adjust them to favour a bidder.</p></div>
+   <div class="card"><h3>Bidders (up to ${NB})</h3><div class="form">
+    ${S.bidders.map((v,i)=> (TRIAL && i>=TRIAL.maxBidders) ? `<label>Bidder ${i+1}</label><div class="note">Full version: up to ${NB} bidders</div>` : `<label>Bidder ${i+1}</label>${inp('bidders.'+i,v)}`).join('')}
+   </div></div>
+   <div class="card"><h3>Evaluation panel (up to ${NE})</h3><div class="form">
+    ${S.evaluators.map((v,i)=>`<label>Evaluator ${i+1}</label>${inp('evaluators.'+i,v)}`).join('')}
+   </div><p class="note">Leave unused evaluators blank. A single evaluator just uses Evaluator 1.</p></div>
+   <div class="card"><h3>Scoring scale (0–5)</h3><div class="form">
+    ${S.scale.map((v,i)=>`<label>${i}</label>${inp('scale.'+i,v)}`).join('')}
+   </div></div>
+  </div>`;
+};
+
+R.compliance = (C) => {
+  const rows = S.reqs.map((r,k)=>`<tr><td class="no">${k+1}</td><td class="l">${inp(`reqs.${k}.text`,r.text)}</td>
+    ${r.ans.map((a,b)=>`<td class="${a==='Yes'?'green':a==='No'?'red':''}">${sel(`reqs.${k}.ans.${b}`,a,['Yes','No','N/A'])}</td>`).join('')}
+    <td>${inp(`reqs.${k}.note`,r.note)}</td><td class="noprint"><button class="del" title="Delete this requirement" onclick="delReq(${k})">×</button></td></tr>`).join('');
+  const B=[...Array(NB).keys()];
+  return `<h2>Stage 1 — Mandatory Compliance</h2><p class="lead">Pass / fail gate. Any “No” disqualifies the bidder; blanks show INCOMPLETE.</p>
+  <div class="card tbl-wrap"><table><tr><th>No</th><th class="l" style="min-width:300px">Mandatory requirement</th>${bidHead()}<th style="min-width:200px">Notes</th><th class="noprint"></th></tr>
+  ${rows}
+  <tr class="noprint"><td colspan="${NB+4}" class="l"><button class="add" onclick="addReq()">+ Add requirement</button> <span class="note">${S.reqs.length} line(s)</span></td></tr>
+  <tr class="tot"><td></td><td class="l">Non-compliances (“No”)</td>${B.map(b=>`<td>${active(b)?C.comp[b].no:''}</td>`).join('')}<td></td><td class="noprint"></td></tr>
+  <tr class="tot"><td></td><td class="l">Unanswered</td>${B.map(b=>`<td>${active(b)?C.comp[b].un:''}</td>`).join('')}<td></td><td class="noprint"></td></tr>
+  <tr class="tot"><td></td><td class="l">COMPLIANCE STATUS</td>${B.map(b=>`<td>${pill(C.comp[b].status)}</td>`).join('')}<td></td><td class="noprint"></td></tr>
+  </table></div>`;
+};
+
+R.scoring = (C) => {
+  const e = curEval;
+  const chips = [...Array(NE).keys()].map(i=>`<span class="chip ${i===e?'on':''}" onclick="curEval=${i};render()">${esc(ename(i))}<small>${C.evCount[i]} scores</small></span>`).join('');
+  const rows = S.criteria.map((c,k)=>{
+    if(!c.text.trim() && !isNum(c.w)) return '';
+    return `<tr><td class="no">${k+1}</td><td class="l calc">${esc(c.cat)}</td><td class="l calc">${esc(c.text)}</td><td class="calc">${pct(c.w,0)}</td>
+    ${[...Array(NB).keys()].map(b=>`<td>${sel(`scores.${e}.${k}.${b}`,S.scores[e][k][b],[0,1,2,3,4,5],'data-t="score"').replace('data-t="sel" ','')}</td>`).join('')}
+    <td>${inp(`comments.${e}.${k}`,S.comments[e][k])}</td></tr>`;
+  }).join('');
+  const B=[...Array(NB).keys()];
+  return `<h2>Evaluator Scoring</h2><p class="lead">Each evaluator scores every bidder 0–5 independently. Criteria and weights are set on the Technical tab.</p>
+  <div class="chips">${chips}</div>
+  <div class="card tbl-wrap"><h3>Scoring sheet — ${esc(ename(e))}</h3>
+  <table><tr><th>No</th><th class="l">Category</th><th class="l" style="min-width:260px">Criterion</th><th>Weight</th>${bidHead()}<th style="min-width:220px">Comments / justification</th></tr>
+  ${rows || `<tr><td colspan="${NB+5}" class="note">Add criteria on the Technical tab first.</td></tr>`}
+  <tr class="tot"><td></td><td></td><td class="l">This evaluator's technical score</td><td></td>${B.map(b=>`<td>${pct(C.evTech[e][b])}</td>`).join('')}<td></td></tr>
+  <tr class="tot"><td></td><td></td><td class="l">Criteria scored</td><td></td>${B.map(b=>`<td>${active(b)?C.evScored[e][b]+' / '+C.nCrit:''}</td>`).join('')}<td></td></tr>
+  </table>
+  <p class="note">Scale: ${S.scale.map((t,i)=>`<b>${i}</b> ${esc(t)}`).join(' · ')}</p></div>`;
+};
+
+R.technical = (C) => {
+  const B=[...Array(NB).keys()];
+  const rows = S.criteria.map((c,k)=>`<tr><td class="no">${k+1}</td><td>${inp(`criteria.${k}.cat`,c.cat)}</td><td>${inp(`criteria.${k}.text`,c.text)}</td>
+    <td style="width:90px">${inp(`criteria.${k}.w`,c.w,'pct','step="any"')}</td>
+    ${B.map(b=>`<td class="calc">${isNum(C.comb[k][b])?C.comb[k][b].toFixed(1):''}</td>`).join('')}
+    <td class="noprint"><button class="del" title="Delete this criterion" onclick="delCrit(${k})">×</button></td></tr>`).join('');
+  const okW = Math.abs(C.totalW-1)<1e-6;
+  return `<h2>Stage 2 — Technical Evaluation (combined panel score)</h2>
+  <p class="lead">Set criteria and weights here (%). Scores are the ${S.project.method.toLowerCase()} of all evaluators who scored that item.</p>
+  ${okW?'':`<div class="warnbox">Weights total ${pct(C.totalW,1)} — they must total 100%.</div>`}
+  <div class="card tbl-wrap"><table><tr><th>No</th><th style="min-width:130px">Category</th><th style="min-width:300px">Criterion</th><th>Weight %</th>${bidHead()}<th class="noprint"></th></tr>
+  ${rows}
+  <tr class="noprint"><td colspan="${NB+5}" class="l"><button class="add" onclick="addCrit()">+ Add criterion</button> <span class="note">${S.criteria.length} line(s) · new criteria appear on every evaluator's sheet</span></td></tr>
+  <tr class="tot"><td></td><td></td><td class="l">Total weight (must be 100%)</td><td class="${okW?'green':'red'}">${pct(C.totalW,0)}</td>${B.map(()=>'<td></td>').join('')}<td class="noprint"></td></tr>
+  <tr class="tot"><td></td><td></td><td class="l">TECHNICAL SCORE (%)</td><td></td>${B.map(b=>`<td>${pct(C.tech[b])}</td>`).join('')}<td class="noprint"></td></tr>
+  <tr class="tot"><td></td><td></td><td class="l">Meets pass mark (${pct(S.project.pass,0)})?</td><td></td>${B.map(b=>`<td>${pill(C.techRes[b])}</td>`).join('')}<td class="noprint"></td></tr>
+  <tr class="tot"><td></td><td></td><td class="l">Criteria scored</td><td></td>${B.map(b=>`<td>${active(b)?C.scored[b]+' / '+C.nCrit:''}</td>`).join('')}<td class="noprint"></td></tr>
+  </table></div>`;
+};
+
+R.packs = (C) => {
+  if(TRIAL) return `<h2>Panel Packs — blind scoring</h2><div class="card lockcard">
+    <h3>Full version feature</h3>
+    <p>Send each evaluator a personal scoring form, collect their scores blind, and import them here — no evaluator sees another's scores or the prices.</p>
+    <p class="note">In this trial you can still enter evaluator scores directly on the Evaluator Scoring tab.</p>
+    ${TRIAL.buyUrl?`<a class="btn solid" href="${esc(TRIAL.buyUrl)}" target="_blank" rel="noopener">Get the full version</a>`:''}</div>`;
+  const fpNow = fingerprint(S.bidders, S.criteria);
+  const named = [...Array(NE).keys()].filter(e=>S.evaluators[e].trim());
+  const got = named.filter(e=>S.subs[e]).length;
+  const rows = [...Array(NE).keys()].map(e=>{
+    const pk = S.packs[e], sb = S.subs[e], hasName = !!S.evaluators[e].trim();
+    const pkCell = !pk ? '<span class="note">Not issued</span>'
+      : (pk.fp===fpNow ? `${pill('Yes')} ${fmtDT(pk.at)}` : `${pill('INCOMPLETE')} Outdated – criteria or bidders changed since ${fmtDT(pk.at)}. Re-issue the form.`);
+    const sbCell = sb ? `${pill('Yes')} ${fmtDT(sb.at)}${sb.name && sb.name!==S.evaluators[e] ? ` <span class="note">(as “${esc(sb.name)}”)</span>`:''}`
+      : (pk ? `${pill('Open')} Awaiting` : '');
+    return `<tr><td class="l b">${esc(ename(e))}</td><td class="l">${pkCell}</td><td class="l">${sbCell}</td><td>${C.evCount[e]}</td>
+      <td><button class="btn dark" ${hasName?'':'disabled title="Enter the evaluator name on Setup first"'} onclick="createPack(${e})">${pk?'Re-issue form':'Create scoring form'}</button></td></tr>`;
+  }).join('');
+  return `<h2>Panel Packs — blind scoring</h2>
+  <p class="lead">Each evaluator gets a pack with <b>only their own scoring sheet</b>. They never see other evaluators' scores, bid prices or the summary.</p>
+  <div class="card help"><h3>How it works</h3><ol>
+   <li>Finish <b>bidders</b> (Setup) and <b>criteria & weights</b> (Technical) first. Tender ID: <b>${esc(S.tenderId)}</b></li>
+   <li>Click <b>Create scoring form</b> for each evaluator. You get a personal <b>scoring form (.html)</b> — send just that one file (email, Teams, USB).</li>
+   <li>The evaluator double-clicks the form, completes the declaration and scores, clicks <b>Submit my scores</b>, and sends the score file (.json) back to you.</li>
+   <li>Click <b>Import score files</b> below (you can select several at once). Files from another tender are rejected.</li>
+   <li>When all files are in, hold moderation using <b>Panel Review</b>.</li></ol>
+   <p class="note"><b>Keep blind:</b> never send evaluators your backup file (Export backup) — it contains everyone's scores and prices.
+   If you change criteria or bidders after issuing forms, re-issue them.</p></div>
+  <div class="card tbl-wrap"><h3>Packs & submissions — ${got} of ${named.length} received</h3>
+   <table><tr><th class="l">Evaluator</th><th class="l">Scoring form issued</th><th class="l">Score file received</th><th>Scores in sheet</th><th></th></tr>${rows}</table>
+   <p style="margin-top:12px"><button class="btn solid" onclick="document.getElementById('scorein').click()">Import score files</button></p></div>`;
+};
+
+R.panel = (C) => {
+  const B=[...Array(NB).keys()], E=[...Array(NE).keys()];
+  const issued = E.filter(e=>S.packs[e]), pending = issued.filter(e=>!S.subs[e]);
+  const banner = pending.length ? `<div class="warnbox">Waiting for ${pending.length} score file(s): ${pending.map(e=>esc(ename(e))).join(', ')}. Hold moderation until all are in.</div>` : '';
+  const evRows = E.map(e=>{
+    const mx = Math.max(...C.evTech[e].filter(isNum));
+    return `<tr><td class="l b">${esc(ename(e))}</td>${B.map(b=>`<td class="${isNum(C.evTech[e][b])&&C.evTech[e][b]===mx?'green':''}">${pct(C.evTech[e][b])}</td>`).join('')}
+    <td class="b">${C.evCount[e]?esc(bname(C.evTop[e])):'<span class="note">Not used</span>'}</td><td>${C.evCount[e]}</td></tr>`;}).join('');
+  const range = B.map(b=>{ const v=E.map(e=>C.evTech[e][b]).filter(isNum); return v.length<2?'':pct(Math.max(...v)-Math.min(...v)); });
+  const spread = S.criteria.map((c,k)=>{
+    if(!c.text.trim() && !isNum(c.w)) return '';
+    return `<tr><td class="l">${esc(c.text)}</td>${B.map(b=>{ const v=C.spread[k][b]; const cls=!isNum(v)?'':v>=3?'red':v>=2?'amber':''; return `<td class="${cls}">${isNum(v)?v:''}</td>`; }).join('')}</tr>`;
+  }).join('');
+  const coi = E.map(e=>`<tr><td class="l b">${esc(ename(e))}</td><td class="${S.coi[e].ok==='Yes'?'green':S.coi[e].ok==='No'?'red':''}">${sel(`coi.${e}.ok`,S.coi[e].ok,['Yes','No'])}</td><td style="min-width:200px"></td><td>${inp(`coi.${e}.date`,S.coi[e].date,'date')}</td></tr>`).join('');
+  return `<h2>Panel Review — Evaluator Consistency</h2><p class="lead">For the moderation meeting: where do evaluators disagree, and does everyone rank the bidders the same way?</p>${banner}
+  <div class="card tbl-wrap"><h3>A. Technical score by evaluator</h3>
+  <table><tr><th class="l">Evaluator</th>${bidHead()}<th>Top bidder</th><th>Scores entered</th></tr>${evRows}
+  <tr class="tot"><td class="l">COMBINED (${esc(S.project.method.toUpperCase())})</td>${B.map(b=>`<td>${pct(C.tech[b])}</td>`).join('')}<td>${C.combTop>=0?esc(bname(C.combTop)):''}</td><td></td></tr>
+  <tr><td class="l">Range across evaluators (max − min)</td>${B.map(b=>`<td>${range[b]}</td>`).join('')}<td></td><td></td></tr>
+  </table><p style="margin-top:12px"><b>Do all evaluators pick the same top bidder?</b> ${C.agree==='No'?pill('No')+' discuss at moderation':pill(C.agree)}</p></div>
+  <div class="card tbl-wrap"><h3>B. Score spread by criterion (max − min)</h3>
+  <table><tr><th class="l" style="min-width:300px">Criterion</th>${bidHead()}</tr>${spread}</table>
+  <p class="note"><span class="pill INCOMPLETE">2 pts</span> discuss &nbsp; <span class="pill FAIL">3+ pts</span> must resolve &nbsp;— <b>${C.flags}</b> item(s) to discuss. Record the agreed reasoning in evaluator comments.</p></div>
+  <div class="card tbl-wrap"><h3>C. Evaluator declarations</h3>
+  <table><tr><th class="l">Evaluator</th><th>No conflict of interest declared?</th><th>Signature</th><th>Date</th></tr>${coi}</table>
+  <p class="note">I confirm I have no financial or personal interest in any bidder and scored independently before moderation.</p></div>`;
+};
+
+R.clar = () => {
+  const names = S.bidders.filter(x=>x.trim());
+  const rows = S.clar.map((c,i)=>`<tr><td class="no">${i+1}</td><td style="min-width:170px">${sel(`clar.${i}.bidder`,c.bidder,names)}</td>
+    <td style="min-width:120px">${sel(`clar.${i}.type`,c.type,['Technical','Commercial','Compliance'])}</td>
+    <td style="min-width:260px">${inp(`clar.${i}.q`,c.q)}</td><td>${inp(`clar.${i}.sent`,c.sent,'date')}</td>
+    <td style="min-width:240px">${inp(`clar.${i}.resp`,c.resp)}</td><td>${inp(`clar.${i}.recv`,c.recv,'date')}</td>
+    <td style="min-width:110px">${inp(`clar.${i}.cost`,c.cost,'num','step="any"')}</td>
+    <td class="${c.status==='Open'?'amber':''}" style="min-width:90px">${sel(`clar.${i}.status`,c.status,['Open','Closed'])}</td></tr>`).join('');
+  const open = S.clar.filter(c=>c.status==='Open').length;
+  return `<h2>Clarifications Log</h2><p class="lead">Cost impact (+) is added automatically to that bidder's evaluated price. Use (−) for credits. <b>${open}</b> open.</p>
+  <div class="card tbl-wrap"><table><tr><th>No</th><th>Bidder</th><th>Type</th><th>Question</th><th>Date sent</th><th>Bidder response</th><th>Date received</th><th>Cost impact (${esc(S.project.currency)})</th><th>Status</th></tr>${rows}</table></div>`;
+};
+
+R.commercial = (C) => {
+  const B=[...Array(NB).keys()], cur=esc(S.project.currency);
+  const row = (label,key) => `<tr><td class="l">${label}</td>${B.map(b=>`<td>${inp(`${key}.${b}`,S[key][b],'num','step="any"')}</td>`).join('')}</tr>`;
+  return `<h2>Stage 3 — Commercial Evaluation</h2><p class="lead">Build a like-for-like evaluated price for each bidder.</p>
+  <div class="card tbl-wrap"><table><tr><th class="l" style="min-width:300px">Item (${cur})</th>${bidHead()}</tr>
+  ${row('<b>Bid price as submitted</b>','price')}${row('Arithmetic corrections (+/−)','corr')}
+  <tr><td class="l">Add-backs from Clarifications log (auto)</td>${B.map(b=>`<td class="calc">${money(C.addback[b])}</td>`).join('')}</tr>
+  ${row('Other adjustments: missing scope, deviations (+/−)','other')}
+  <tr class="tot"><td class="l">EVALUATED PRICE</td>${B.map(b=>`<td>${money(C.evalP[b])}</td>`).join('')}</tr>
+  <tr><td class="l">Variance vs budget estimate</td>${B.map(b=>`<td class="calc" style="${C.varB[b]>0?'color:var(--fail)':''}">${sgnPct(C.varB[b])}</td>`).join('')}</tr>
+  <tr><td class="l">Price rank (all bidders, lowest = 1)</td>${B.map(b=>`<td class="calc">${C.pRank[b]??''}</td>`).join('')}</tr>
+  </table></div>
+  <div class="card tbl-wrap"><h3>Other commercial terms (for information — not scored)</h3>
+  <table><tr><th class="l" style="min-width:300px">Term</th>${bidHead()}</tr>
+  ${S.terms.map((t,i)=>`<tr><td>${inp(`terms.${i}.label`,t.label)}</td>${B.map(b=>`<td>${inp(`terms.${i}.vals.${b}`,t.vals[b])}</td>`).join('')}</tr>`).join('')}
+  </table></div>`;
+};
+
+R.summary = (C) => {
+  const B=[...Array(NB).keys()].filter(active), p=S.project, W=p.techW||0;
+  const rows = B.map(b=>`<tr class="${C.rank[b]===1?'win':''}"><td class="l b">${esc(bname(b))}</td><td>${pill(C.comp[b].status)}</td>
+    <td>${pct(C.tech[b])}</td><td>${pill(C.techRes[b])}</td><td>${pill(C.elig[b]?'Yes':'No')}</td><td>${money(C.evalP[b])}</td>
+    <td>${pct(C.ps[b])}</td><td>${C.elig[b]?pct(C.tech[b]*W):''}</td><td>${C.elig[b]?pct(C.ps[b]*(1-W)):''}</td>
+    <td class="b">${pct(C.total[b])}</td><td class="b">${C.rank[b]??''}</td><td class="l">${esc(C.outcome[b])}</td></tr>`).join('');
+  const bars = B.map(b=>`<div class="bar-row"><div>${esc(bname(b))}</div><div class="bar">
+     ${C.elig[b]?`<div class="t" style="width:${C.tech[b]*W*100}%"></div><div class="c" style="width:${C.ps[b]*(1-W)*100}%"></div>`:''}</div>
+     <div class="b">${C.elig[b]?pct(C.total[b]):'<span class="note">n/e</span>'}</div></div>`).join('');
+  const win = C.winner;
+  const panel = S.evaluators.filter(x=>x.trim()).join('; ');
+  return `<div class="printhead"><h2>Tender Evaluation — Summary & Award Recommendation</h2>${TRIAL?`<p><b>TRIAL VERSION</b> — evaluation copy for ${esc(TRIAL.name)}</p>`:''}</div>
+  <h2 class="noprint">Evaluation Summary & Award Recommendation</h2><p class="lead noprint">Eligible = compliance PASS + technical PASS + evaluated price.</p>
+  <div class="card"><div class="form" style="grid-template-columns:200px 1fr">
+   <label>Tender</label><div>${esc(p.title)}</div><label>Reference</label><div>${esc(p.ref)}</div>
+   <label>Client</label><div>${esc(p.client)}</div><label>Evaluation date</label><div>${esc(p.date)}</div>
+   <label>Weighting (Tech / Comm)</label><div>${pct(W,0)} / ${pct(1-W,0)} &nbsp;·&nbsp; pass mark ${pct(p.pass,0)}</div>
+   <label>Evaluation panel</label><div>${esc(panel||'—')} (${esc(p.method)} of scores)</div></div></div>
+  <div class="kpis">
+   <div class="kpi"><div class="k">Recommended bidder</div><div class="v">${win!==undefined?esc(bname(win)):'No eligible bidder'}</div></div>
+   <div class="kpi"><div class="k">Evaluated price (${esc(p.currency)})</div><div class="v">${win!==undefined?money(C.evalP[win]):'—'}</div></div>
+   <div class="kpi"><div class="k">Variance vs budget</div><div class="v">${win!==undefined?sgnPct(C.varB[win])||'—':'—'}</div></div>
+   <div class="kpi"><div class="k">Lowest eligible price</div><div class="v">${money(C.low)||'—'}</div></div>
+   <div class="kpi"><div class="k">Holds across sensitivity?</div><div class="v">${pill(C.robust)||'—'}</div></div>
+  </div>
+  <div class="card tbl-wrap"><table><tr><th class="l">Bidder</th><th>Compliance</th><th>Technical %</th><th>Technical result</th><th>Eligible?</th>
+   <th>Evaluated price (${esc(p.currency)})</th><th>Price score</th><th>Weighted technical</th><th>Weighted commercial</th><th>TOTAL</th><th>Rank</th><th class="l">Outcome</th></tr>
+   ${rows||`<tr><td colspan="12" class="note">Add bidders on Setup.</td></tr>`}</table></div>
+  <div class="card"><h3>Total score — eligible bidders</h3><div class="bars">${bars}</div>
+   <div class="legend"><i style="background:var(--navy)"></i>Weighted technical<i style="background:#7fb2e5"></i>Weighted commercial</div></div>
+  <div class="card"><h3>Recommendation & justification</h3><textarea data-k="recommendation" data-t="text">${esc(S.recommendation)}</textarea></div>
+  <div class="card tbl-wrap"><h3>Approval</h3><table><tr><th class="l"></th><th>Name</th><th>Designation</th><th>Signature</th><th>Date</th></tr>
+   ${S.approvals.map((a,i)=>`<tr><td class="l b">${esc(a.role)}</td><td>${inp(`approvals.${i}.name`,a.name)}</td><td>${inp(`approvals.${i}.desig`,a.desig)}</td><td style="min-width:160px;height:40px"></td><td>${inp(`approvals.${i}.date`,a.date,'date')}</td></tr>`).join('')}
+  </table></div>`;
+};
+
+R.sens = (C) => {
+  const B=[...Array(NB).keys()].filter(active);
+  return `<h2>Weighting Sensitivity</h2><p class="lead">Who wins if the technical / commercial split changes? Edit the weights in the header row.</p>
+  <div class="card tbl-wrap"><table><tr><th class="l">Technical weight →</th>${S.sens.map((w,i)=>`<th style="background:#fff">${inp('sens.'+i,w,'pct')}</th>`).join('')}</tr>
+  <tr><th class="l">Bidder</th>${S.sens.map(w=>`<th>${pct(w,0)} / ${pct(1-(w||0),0)}</th>`).join('')}</tr>
+  ${B.map(b=>`<tr><td class="l b">${esc(bname(b))}</td>${S.sens.map((w,i)=>`<td class="${C.sensWin[i]===b?'green':''}">${C.elig[b]?pct(C.sens[i][b]):'<span class="note">n/e</span>'}</td>`).join('')}</tr>`).join('')}
+  <tr class="tot"><td class="l">Winner</td>${C.sensWin.map(i=>`<td>${i>=0?esc(bname(i)):''}</td>`).join('')}</tr></table>
+  <p style="margin-top:12px"><b>Recommendation robust?</b> ${pill(C.robust)}</p>
+  <p class="note">If the winner changes within a reasonable weighting range, say so in the justification.</p></div>`;
+};
+
+R.help = () => `<h2>How to use</h2><div class="card help"><ol>
+  <li><b>Setup</b> — project details, weighting, pass mark, budget, bidders (up to ${NB}) and evaluators (up to ${NE}).</li>
+  <li><b>Compliance</b> — mandatory pass/fail requirements. Any “No” disqualifies.</li>
+  <li><b>Technical</b> — criteria and weights (must total 100%).</li>
+  <li><b>Panel Packs</b> — for blind scoring, send each evaluator their own scoring form (.html); import their score files when they come back.</li>
+  <li><b>Evaluator Scoring</b> — see (or directly enter) each evaluator's 0–5 scores. Scores combine automatically (average or median).</li>
+  <li><b>Panel Review</b> — spot disagreements (spread ≥ 2), check everyone's top pick, record conflict-of-interest declarations.</li>
+  <li><b>Clarifications</b> — log questions; cost impacts flow into the evaluated price.</li>
+  <li><b>Commercial</b> — bid prices, corrections, adjustments → evaluated price.</li>
+  <li><b>Summary</b> — eligibility, price score (lowest eligible ÷ bidder), weighted total, rank, justification, approvals. Use <b>Print summary</b> to save as PDF.</li>
+  <li><b>Sensitivity</b> — shows whether the winner holds under other weightings.</li></ol>
+  <p><b>Saving:</b> your work saves automatically in this browser on this computer. Use <b>Export backup</b> to keep a file copy or move it to another computer, and <b>Import backup</b> to reopen it. Clearing browser data deletes the saved copy.</p>
+  <p><b>Privacy:</b> nothing is uploaded — the tool runs entirely in your browser and works offline.</p>
+  <p><b>Open source:</b> free to use, share, modify and redistribute under the MIT License. Copyright © 2026 Asyraf Abdul. The software is provided “as is”, without warranty — check results before relying on them for an award decision.</p>
+  <p><b>Formula:</b> Total = Technical % × technical weight + (lowest eligible evaluated price ÷ bidder's evaluated price) × commercial weight.</p></div>`;
+
+/* ---------- evaluator mode ---------- */
+function evProgress(){
+  const p = EVS.pack, crit = p.criteria.map((c,k)=>isNum(c.w)?k:-1).filter(k=>k>=0), bids = p.bidders.map((b,i)=>String(b).trim()?i:-1).filter(i=>i>=0);
+  const done = crit.reduce((s,k)=>s+bids.filter(b=>isNum(EVS.scores[k][b])).length,0);
+  return {done, total: crit.length*bids.length, crit, bids};
+}
+function renderEval(){
+  const p = EVS.pack, pr = evProgress();
+  document.getElementById('hdr').innerHTML = `
+    <div><h1>Tender Evaluation — Evaluator Scoring</h1><div class="sub">Evaluator mode · you can only see your own scores</div></div>
+    <div class="spacer"></div>
+    ${window.EMBED_PACK ? '' : '<button class="btn" onclick="exitEval()">Exit evaluator mode</button>'}
+    <button class="btn solid" onclick="submitScores()">Submit my scores</button>`;
+  document.getElementById('status').innerHTML = `
+    <div><span class="k">Tender</span><b>${esc(p.project.title||'—')}</b></div>
+    <div><span class="k">Reference</span><b>${esc(p.project.ref||'—')}</b></div>
+    <div><span class="k">Evaluator</span><b>${esc(p.evaluator)}</b></div>
+    <div><span class="k">Progress</span><b>${pr.done} / ${pr.total} scores</b></div>
+    <div><span class="k">Submitted</span><b>${EVS.submitted ? fmtDT(EVS.submitted) : 'Not yet'}</b></div>`;
+  document.getElementById('nav').innerHTML = [['mine','My scoring'],['ehelp','How to use']].map(([id,l],i)=>
+    `<button class="${tab===id?'on':''}" onclick="go('${id}')"><span class="num">${i+1}</span>${l}</button>`).join('');
+  if(!['mine','ehelp'].includes(tab)) tab = 'mine';
+  const bidx = pr.bids;
+  const total = p.criteria.reduce((s,c)=>s+(isNum(c.w)?c.w:0),0);
+  const myTech = bidx.map(b=>{ const n=pr.crit.filter(k=>isNum(EVS.scores[k][b])).length; if(!n||!total) return null;
+    return pr.crit.reduce((s,k)=>s+p.criteria[k].w*(isNum(EVS.scores[k][b])?EVS.scores[k][b]:0),0)/5/total; });
+  const main = document.getElementById('main');
+  if(tab==='ehelp'){
+    main.innerHTML = `<h2>How to use (evaluator)</h2><div class="card help"><ol>
+      <li>Complete the <b>conflict-of-interest declaration</b>.</li>
+      <li>Score each bidder <b>0–5</b> on every criterion using the scale shown. Add a short justification, especially for scores of 0–1 or 5.</li>
+      <li>Your work saves automatically in this browser. You can close this file and reopen it later on the same computer and browser.</li>
+      <li>Click <b>Submit my scores</b>. A score file downloads — send it to the tender lead. You can re-submit later; the lead keeps the latest file.</li></ol>
+      <p>This pack contains only the bidders and criteria — no prices and no other evaluator's scores. Score independently and don't discuss scores before the moderation meeting.</p></div>`;
+    return;
+  }
+  const rows = p.criteria.map((c,k)=>{
+    if(!String(c.text).trim() && !isNum(c.w)) return '';
+    return `<tr><td class="no">${k+1}</td><td class="l calc">${esc(c.cat)}</td><td class="l calc">${esc(c.text)}</td><td class="calc">${pct(c.w,0)}</td>
+      ${bidx.map(b=>`<td>${sel(`scores.${k}.${b}`,EVS.scores[k][b],[0,1,2,3,4,5]).replace('data-t="sel"','data-t="score"')}</td>`).join('')}
+      <td>${inp(`comments.${k}`,EVS.comments[k])}</td></tr>`;
+  }).join('');
+  main.innerHTML = `<h2>Scoring sheet — ${esc(p.evaluator)}</h2>
+  <p class="lead">Score independently. Form issued ${fmtDT(p.issued)} · Tender ID ${esc(p.tenderId)}</p>
+  <div class="card"><h3>Conflict-of-interest declaration</h3>
+   <p style="margin-top:0">I confirm I have no financial or personal interest in any bidder, and I will score independently before moderation.</p>
+   <div class="form" style="grid-template-columns:220px 260px">
+    <label>I declare no conflict of interest</label><div class="${EVS.coi.ok==='Yes'?'green':EVS.coi.ok==='No'?'red':''}">${sel('coi.ok',EVS.coi.ok,['Yes','No'])}</div>
+    <label>Date</label>${inp('coi.date',EVS.coi.date,'date')}</div>
+   ${EVS.coi.ok==='No'?'<p class="warnbox" style="margin-top:12px">Tell the tender lead about the conflict before scoring.</p>':''}</div>
+  <div class="card tbl-wrap"><table><tr><th>No</th><th class="l">Category</th><th class="l" style="min-width:260px">Criterion</th><th>Weight</th>
+   ${bidx.map(b=>`<th>${esc(p.bidders[b])}</th>`).join('')}<th style="min-width:220px">Comments / justification</th></tr>
+   ${rows}
+   <tr class="tot"><td></td><td></td><td class="l">My technical score</td><td></td>${myTech.map(v=>`<td>${pct(v)}</td>`).join('')}<td></td></tr></table>
+   <p class="note">Scale: ${(p.scale||SCALE_DEF).map((t,i)=>`<b>${i}</b> ${esc(t)}`).join(' · ')}</p></div>`;
+}
+
+function renderHeader(){
+  document.getElementById('hdr').innerHTML = `
+  <div><h1>Tender Evaluation Matrix${TRIAL?' — Trial':''}</h1><div class="sub">Compliance gate → panel technical scoring → evaluated price → weighted award recommendation</div></div>
+  <div class="spacer"></div>
+  ${TRIAL ? '' : `<button class="btn" onclick="document.getElementById('packin').click()">Open evaluator pack</button>`}
+  <button class="btn" onclick="exportJSON()">Export backup</button>
+  <button class="btn" onclick="document.getElementById('imp').click()">Import backup</button>
+  <button class="btn" onclick="loadExample()">Load example</button>
+  <button class="btn" onclick="clearAll()">Clear all</button>
+  <button class="btn solid" onclick="printSummary()">Print summary</button>`;
+}
+
+function render(){
+  if(MODE==='eval'){ renderEval(); return; }
+  if(TRIAL && tab==='trials') tab = 'setup';
+  const C = compute();
+  renderHeader(); renderNav(); renderStatus(C);
+  document.getElementById('main').innerHTML = R[tab](C);
+}
+function go(t){ tab=t; render(); window.scrollTo(0,0); }
+
+/* ---------- packs & score files ---------- */
+const fmtDT = iso => { if(!iso) return ''; const d = new Date(iso); return isNaN(d) ? esc(iso) : d.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'}); };
+const safe = s => String(s||'').replace(/[^\w-]+/g,'_').replace(/^_+|_+$/g,'') || 'tender';
+function downloadText(text, name, type){
+  const blob = new Blob([text],{type});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+/* App source without the lead-only code (scoring-form builder, score import, trial builder). */
+function stripFull(){
+  const A = '/*FULL' + '-START*/', Z = '/*FULL' + '-END*/';
+  const src = document.getElementById('app').textContent; let out = '', i = 0;
+  for(;;){ const a = src.indexOf(A, i); if(a < 0){ out += src.slice(i); break; } const z = src.indexOf(Z, a); out += src.slice(i, a); i = z + Z.length; }
+  return out;
+}
+/*FULL-START*/
+/* Builds a standalone evaluator scoring form: same app code, pack embedded, locked to evaluator mode. */
+function buildFormHTML(pack){
+  const css = document.querySelector('style').textContent;
+  const app = stripFull();
+  const data = JSON.stringify(pack).replace(/</g,'\\u003c');
+  const title = 'Scoring form – ' + pack.evaluator + ' – ' + (pack.project.ref || pack.project.title || 'Tender');
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+    + '<title>' + esc(title) + '</title>\n<style>' + css + '</style>\n</head>\n<body>\n'
+    + '<header id="hdr"></header>\n<div class="status" id="status"></div>\n<nav id="nav"></nav>\n<main id="main"></main>\n'
+    + '<script>window.EMBED_PACK = ' + data + ';<\/script>\n'
+    + '<script id="app">' + app + '<\/script>\n</body>\n</html>\n';
+}
+function download(obj, name){
+  const blob = new Blob([JSON.stringify(obj,null,1)],{type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function readFiles(ev, handler){
+  const files = [...ev.target.files]; ev.target.value = '';
+  files.forEach(f=>{ const r = new FileReader();
+    r.onload = () => { let d; try{ d = JSON.parse(r.result); }catch(x){ alert(f.name+' is not a valid file.'); return; } handler(d, f.name); };
+    r.readAsText(f); });
+}
+function createPack(e){
+  if(!S.evaluators[e].trim()){ alert('Enter this evaluator\'s name on Setup first.'); return; }
+  const C = compute();
+  if(C.nCrit===0){ alert('Add criteria and weights on the Technical tab first.'); return; }
+  if(!S.bidders.some(b=>b.trim())){ alert('Add bidders on Setup first.'); return; }
+  if(Math.abs(C.totalW-1)>1e-6 && !confirm('Weights do not total 100%. Create the pack anyway?')) return;
+  const fp = fingerprint(S.bidders, S.criteria), issued = new Date().toISOString();
+  const pack = {kind:'tem-pack', v:1, tenderId:S.tenderId, fp, e, evaluator:S.evaluators[e].trim(), issued,
+    project:{title:S.project.title, ref:S.project.ref, client:S.project.client},
+    bidders:S.bidders, criteria:S.criteria, scale:S.scale};
+  S.packs[e] = {at:issued, fp}; save(); render();
+  downloadText(buildFormHTML(pack), `${safe(S.project.ref)}_SCORING_FORM_${safe(S.evaluators[e])}.html`, 'text/html');
+}
+/*FULL-END*/
+function cleanGrid(g){ return arr(S.criteria.length,k=>arr(NB,b=>{ const v = g && g[k] ? g[k][b] : null; return (typeof v==='number' && v>=0 && v<=5) ? Math.round(v) : null; })); }
+function openPack(d, name){
+  if(!d || d.kind!=='tem-pack'){ alert(name+' is not an evaluator pack.' + (d && d.kind==='tem-scores' ? ' It is a score file — the tender lead imports it on the Panel Packs tab.' : '')); return; }
+  if(MODE==='lead' && !window.EMBED_PACK && !confirm(`Open the scoring pack for ${d.evaluator}? The tool switches to evaluator mode. Any lead data on this computer stays saved but hidden until you exit evaluator mode.`)) return;
+  const key = KEY+'-eval-'+d.tenderId+'-'+d.e;
+  let ev = null; try{ ev = JSON.parse(localStorage.getItem(key) || 'null'); }catch(x){}
+  if(ev && ev.pack){
+    if(ev.fp !== d.fp) alert('This is an updated pack (criteria or bidders changed). Your earlier scores were kept — please check every row.');
+    ev.pack = d; ev.fp = d.fp;
+    const n = d.criteria.length;
+    ev.scores = arr(n, k => ev.scores[k] || arr(NB,null)); ev.comments = arr(n, k => ev.comments[k] || '');
+  } else ev = {pack:d, fp:d.fp, scores:arr(d.criteria.length,()=>arr(NB,null)), comments:arr(d.criteria.length,''), coi:{ok:'',date:''}, submitted:null};
+  EVS = ev; EVKEY = key; MODE = 'eval'; tab = 'mine'; save(); render(); window.scrollTo(0,0);
+}
+function exitEval(){
+  if(!confirm('Exit evaluator mode? Your scores stay saved on this computer — reopen the pack file to continue.')) return;
+  save(); MODE = 'lead'; EVS = null; EVKEY = null; tab = 'setup'; save(); render();
+}
+function submitScores(){
+  const p = EVS.pack, pr = evProgress();
+  if(!EVS.coi.ok){ alert('Please complete the conflict-of-interest declaration first.'); return; }
+  if(pr.done < pr.total && !confirm(`${pr.total - pr.done} score(s) are still blank. Submit anyway?`)) return;
+  const out = {kind:'tem-scores', v:1, tenderId:p.tenderId, fp:p.fp, e:p.e, evaluator:p.evaluator, submitted:new Date().toISOString(),
+    scores:EVS.scores, comments:EVS.comments, coi:EVS.coi};
+  EVS.submitted = out.submitted; save(); render();
+  download(out, `${safe(p.project.ref)}_SCORES_${safe(p.evaluator)}.json`);
+}
+/*FULL-START*/
+function importScores(d, name){
+  if(!d || d.kind!=='tem-scores'){ alert(name+' is not an evaluator score file.'); return; }
+  if(d.tenderId !== S.tenderId){ alert(`${name} belongs to a different tender (ID ${d.tenderId}) and was not imported.`); return; }
+  const e = d.e;
+  if(!(e>=0 && e<NE)){ alert(name+' has an invalid evaluator slot.'); return; }
+  if(d.fp !== fingerprint(S.bidders, S.criteria) &&
+     !confirm(`${d.evaluator} scored an older version of the criteria or bidder list. Scores are matched by row and column position. Import anyway?`)) return;
+  if(S.scores[e].some(r=>r.some(isNum)) && !confirm(`Replace the scores already in ${ename(e)}'s sheet with ${d.evaluator}'s file submitted ${fmtDT(d.submitted)}?`)) return;
+  S.scores[e] = cleanGrid(d.scores);
+  S.comments[e] = arr(S.criteria.length,k=>String((d.comments||[])[k]||''));
+  S.coi[e] = {ok: (d.coi&&d.coi.ok)||'', date: (d.coi&&d.coi.date)||''};
+  S.subs[e] = {at:d.submitted, name:d.evaluator};
+  save(); render();
+}
+
+/*FULL-END*/
+document.addEventListener('change', ev=>{
+  const el = ev.target; if(!el.dataset || !el.dataset.k) return;
+  setPath(el.dataset.k, el.value, el.dataset.t); save();
+  const y = window.scrollY; render(); window.scrollTo(0,y);
+});
+
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = (S.project.ref||'tender-evaluation').replace(/[^\w-]+/g,'_')+'.json'; a.click();
+}
+function importJSON(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { try{
+      const d = JSON.parse(r.result);
+      if(d.kind==='tem-pack'){ alert('That is an evaluator pack — use “Open evaluator pack”.'); return; }
+      if(d.kind==='tem-scores'){ alert('That is an evaluator score file — import it on the Panel Packs tab.'); return; }
+      if(!d.project || !d.bidders){ throw new Error('bad'); }
+      S = normalize(Object.assign(blank(), d)); save(); render();
+    }catch(e){ alert('That file is not a valid backup.'); } };
+  r.readAsText(f); ev.target.value='';
+}
+function loadExample(){ if(confirm('Replace current data with the worked example?')){ S=example(); save(); render(); } }
+function clearAll(){ if(confirm('Clear everything and start a new tender? Export a backup first if you need this one.')){ S=blank(); save(); go('setup'); } }
+function printSummary(){ go('summary'); setTimeout(()=>window.print(),150); }
+
+
+
+if(window.EMBED_PACK){ S = blank(); openPack(window.EMBED_PACK, 'scoring form'); }
+else { S = load(); loadMode(); if(MODE==='eval') tab = 'mine'; render(); }
+</script>
+</body>
+</html>
