@@ -12,7 +12,7 @@ It is **one HTML file**. Open it in any browser — no install, no login, no ser
 
 ## Try it
 
-- **Online:** `https://<your-github-username>.github.io/tender-evaluation-matrix/` *(after you enable GitHub Pages — see below)*
+- **Online:** **[ahmadnoorasyraf.github.io/tender-evaluation-matrix](https://ahmadnoorasyraf.github.io/tender-evaluation-matrix/)** — opens instantly, nothing to install
 - **Offline:** download [`index.html`](index.html) and double-click it.
 
 The tool opens with a worked example (a fictional chiller plant tender with four bidders) so you can see how everything fits together. Use **Clear all** to start your own.
